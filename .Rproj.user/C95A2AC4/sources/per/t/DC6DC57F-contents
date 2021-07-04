@@ -1,0 +1,92 @@
+## GRAFICA USOS FUENTE DE DATOS
+library(stringr)
+library(lubridate)
+library(data.table)
+library(ggplot2)
+library(scales)
+library(shiny)
+library(shinydashboard)
+library(shinyWidgets)
+library(dplyr,warn.conflicts = FALSE)
+library(tidyverse)
+library(DT,warn.conflicts = FALSE)
+library(formattable,warn.conflicts = FALSE)
+
+# mesesf <- c("C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2019.01.Rds",
+#             "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2019.02.Rds",
+#             "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2020.01.Rds",
+#             "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2020.02.Rds",
+#             "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2021.01.Rds",
+#             "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2021.02.Rds")
+
+mesesf <- c("C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2021.01.Rds",
+            "C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2021.02.Rds")
+
+# mesesf <- c("C:/Users/rnogales/Dropbox/10.DRIVE/R.SHINY/data/dmes2021.02.Rds")
+
+data <- mesesf %>%
+  map_dfr(readRDS)
+
+
+## VARIABLES: DIA, USO ACUMULADO, ANNO, MES
+udata <- data %>%
+  arrange(ANNO,MES,DIA,HORA,CUARTO) %>%
+  mutate(PUSOATOTAL = mean(SUMAUSOA[USO == 0])) %>%
+  distinct(ANNO,MES,DIA,SUMAUSOA,PUSOAMES,PUSOATOTAL)
+
+ggplot(data = udata,aes(x = DIA,y = SUMAUSOA)) +
+  geom_bar(stat = "identity",
+           fill = "brown") +
+  
+  # TITULOS EJES
+  ggtitle(str_c("TOTAL DE USOS POR MES POR DIA",
+                "\nDemanda Promedio Total: ",
+                comma(udata$PUSOATOTAL,digits = 2
+                      )
+                )
+          ) +
+  xlab("DIA") +
+  ylab("NUMERO DE USOS") +
+  theme(
+    plot.title = element_text(color="brown4", size=14, face="bold"),
+    axis.title.x = element_text(color="brown4", size=14, face="bold"),
+    axis.title.y = element_text(color="brown4", size=14, face="bold")
+    ) +
+  theme(axis.text.x = element_text(angle = 90,
+                                   vjust = 0.5,
+                                   hjust = 1
+                                   )
+        ) +
+  scale_y_continuous(labels = function(n){
+    comma(n,digit = 0)
+    }) +
+  
+  # ETIQUETAS EN LAS BARRAS
+  geom_text(aes(label = comma(SUMAUSOA,digit = 0)),
+            vjust = 0.4,
+            size = 3.0, 
+            angle = 90,  
+            color = "white",
+            hjust = "right"
+  ) +
+  # LINEA PROMEDIO
+  geom_hline(yintercept = comma(udata$PUSOATOTAL,
+                                digits = 2
+                                ),
+             color = "black"
+             ) +
+  
+  # CUADROS POR MES
+  facet_wrap(ANNO ~ MES, labeller = label_both) +
+  
+  # LINEA PROMEDIO POR MES
+  geom_hline(aes(yintercept = PUSOAMES), 
+             data = udata,
+             color = "blueviolet",
+             size = 0.6) +
+  geom_label(x = "10", y = max(udata$SUMAUSOA)+5500,
+            label = str_c("Promedio Mes: ",
+                          comma(udata$PUSOAMES,digits = 2)
+                          )
+            )
+

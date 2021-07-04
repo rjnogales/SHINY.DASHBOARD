@@ -1,0 +1,41 @@
+#####################################
+## 01tpDemandaEjecuta.R
+## Función:
+## Organiza  la presentación
+## shiny de la demanda
+## Esto es código que Ejecuta la aplicación
+#####################################
+
+#####################################
+# LIBRERIAS
+#####################################
+
+library(stringr)
+library(lubridate)
+library(data.table)
+library(ggplot2)
+library(scales)
+library(shiny)
+library(shinydashboard)
+library(shinyWidgets)
+library(dplyr,warn.conflicts = FALSE)
+library(tidyverse)
+library(DT)
+library(formattable)
+
+#####################################
+# VARIABLES
+#####################################
+
+source('01tdDemandaGlobal.R')
+source('01tdDemandaUIa.R')
+source('01tdDemandaServer.R')
+
+#####################################
+# CODIGO
+#####################################
+
+shinyApp(
+  ui = ui,
+  server = server
+)
